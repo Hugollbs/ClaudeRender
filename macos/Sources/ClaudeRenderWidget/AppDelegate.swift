@@ -51,7 +51,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let size = hosting.fittingSize
         var origin = panel.frame.origin
         var topRight = NSPoint(x: panel.frame.maxX, y: panel.frame.maxY)
-        if reposition || panel.frame.isEmpty, let screen = NSScreen.main {
+        if reposition || panel.frame.isEmpty, let screen = NSScreen.screens.first {
+            // screens.first = écran principal (celui de la barre de menus) ; NSScreen.main dépend du focus.
             let area = screen.visibleFrame // exclut la barre de menus
             topRight = NSPoint(x: area.maxX - 12, y: area.maxY - 12)
         }
