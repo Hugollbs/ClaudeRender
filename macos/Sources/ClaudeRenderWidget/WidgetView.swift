@@ -3,6 +3,7 @@ import ClaudeRenderCore
 import SwiftUI
 
 let widgetWidth: CGFloat = 300
+let widgetPadding: CGFloat = 10
 
 struct WidgetView: View {
     @ObservedObject var store: LiveStore
@@ -21,10 +22,14 @@ struct WidgetView: View {
                     Text(emptyText).font(.caption).foregroundStyle(.secondary)
                 }
                 ForEach(rows) { session in
-                    row(session, now: context.date)
+                    if store.choosing {
+                        row(session, now: context.date)
+                    } else {
+                        graphRow(session, now: context.date)
+                    }
                 }
             }
-            .padding(10)
+            .padding(widgetPadding)
             .frame(width: widgetWidth, alignment: .leading)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
         }
@@ -36,13 +41,49 @@ struct WidgetView: View {
 
     private var header: some View {
         HStack {
-            Text("Claude Render").font(.caption.bold())
+            // Étiquette discrète : le graphe doit rester l'élément principal.
+            Text("CLAUDE RENDER").font(.system(size: 9, weight: .semibold)).tracking(1.2)
+                .foregroundStyle(.tertiary)
             Spacer()
             Button(store.choosing ? "OK" : "✎") { store.choosing.toggle() }
                 .buttonStyle(.plain)
-                .font(.caption)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
                 .help("Choisir les sessions à suivre")
         }
+    }
+
+    // Vue normale : nom + durée, puis le graphe de branches. Le détail texte passe dans l'infobulle.
+    private func graphRow(_ session: LiveSession, now: Date) -> some View {
+        let active = session.state(now: now) == .active
+        let runningAgents = active ? session.agents.filter(\.running).count : 0
+        return VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 4) {
+                Text(session.projectName).font(.caption2.weight(.semibold)).lineLimit(1)
+                    .foregroundStyle(active ? .primary : .secondary)
+                if runningAgents > 0 {
+                    Label("\(runningAgents)", systemImage: "arrow.triangle.branch")
+                        .labelStyle(.titleAndIcon)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(BranchPalette.color(track: 1))
+                }
+                Spacer()
+                Text(session.elapsedLabel(now: now)).font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
+            }
+            BranchGraph(layout: branchLayout(session, now: now), active: active, width: graphWidth)
+        }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .help(tooltip(session, now: now))
+        .onTapGesture { openDetail(session) }
+    }
+
+    private var graphWidth: CGFloat { widgetWidth - 2 * widgetPadding }
+
+    private func tooltip(_ session: LiveSession, now: Date) -> String {
+        var lines = [session.actionLabel, "\(session.ageLabel(now: now)) · \(session.elapsedLabel(now: now))"]
+        if let agents = session.agentsLabel { lines.append(agents) }
+        return lines.joined(separator: "\n")
     }
 
     private func row(_ session: LiveSession, now: Date) -> some View {
