@@ -1,0 +1,237 @@
+/* Thème sombre sobre de la timeline. Variables locales : le panneau ne dépend pas du reste de l'app. */
+.timeline {
+  --tl-bg: #14161c;
+  --tl-panel: #1b1e26;
+  --tl-lane: #1f232c;
+  --tl-lane-selected: #2a3142;
+  --tl-grid: #2a2f3a;
+  --tl-text: #dde1ea;
+  --tl-muted: #98a0b3;
+  --tl-error: #ff5c5c;
+  --tl-accent: #7aa2ff;
+
+  position: relative;
+  background: var(--tl-bg);
+  color: var(--tl-text);
+  font: 12px/1.4 system-ui, sans-serif;
+  border: 1px solid var(--tl-grid);
+  border-radius: 6px;
+  padding: 8px;
+  user-select: none;
+}
+
+.tl-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 6px;
+}
+.tl-legend,
+.tl-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+.tl-legend-item,
+.tl-dep-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--tl-text);
+}
+.tl-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.tl-controls button {
+  background: var(--tl-panel);
+  color: var(--tl-text);
+  border: 1px solid var(--tl-grid);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font: inherit;
+}
+.tl-controls button:hover {
+  border-color: var(--tl-accent);
+}
+
+.tl-chart {
+  background: var(--tl-panel);
+  border-radius: 4px;
+}
+.tl-axis {
+  display: block;
+}
+.tl-body {
+  max-height: 55vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.tl-svg {
+  display: block;
+  cursor: grab;
+}
+.tl-svg:active {
+  cursor: grabbing;
+}
+
+.tl-tick {
+  stroke: var(--tl-muted);
+}
+.tl-tick-label {
+  fill: var(--tl-muted);
+  font-size: 11px;
+}
+.tl-grid {
+  stroke: var(--tl-grid);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.tl-plot-bg {
+  fill: transparent;
+}
+.tl-lane-bg {
+  fill: var(--tl-lane);
+  pointer-events: none;
+}
+.tl-lane-bg.selected {
+  fill: var(--tl-lane-selected);
+}
+
+.tl-label-bg {
+  fill: var(--tl-panel);
+  cursor: pointer;
+}
+.tl-lane-label.selected .tl-label-bg {
+  fill: var(--tl-lane-selected);
+}
+.tl-lane-name {
+  fill: var(--tl-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.tl-lane-label.selected .tl-lane-name {
+  fill: var(--tl-accent);
+  font-weight: 600;
+}
+.tl-toggle {
+  fill: var(--tl-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.tl-toggle:hover {
+  fill: var(--tl-text);
+}
+
+.tl-span {
+  cursor: pointer;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 0.5;
+}
+.tl-span:hover {
+  stroke: #fff;
+  stroke-width: 1;
+}
+.tl-span.error {
+  stroke: var(--tl-error);
+  stroke-width: 1.8;
+}
+/* En cours : plus transparent et contour en pointillés */
+.tl-span.running {
+  fill-opacity: 0.55;
+  stroke: #fff;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+.tl-span.selected {
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-dasharray: none;
+}
+.tl-span-text {
+  fill: #0d0f14;
+  font-size: 10.5px;
+  pointer-events: none;
+}
+
+.tl-range {
+  fill: rgba(122, 162, 255, 0.18);
+  stroke: var(--tl-accent);
+  stroke-width: 1;
+  pointer-events: none;
+}
+.tl-range.draft {
+  fill: rgba(122, 162, 255, 0.28);
+}
+
+.tl-minimap-wrap {
+  margin-top: 6px;
+}
+.tl-minimap {
+  display: block;
+  background: var(--tl-panel);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.tl-viewport {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: #fff;
+  stroke-width: 1;
+  cursor: grab;
+}
+
+.tl-hint {
+  margin-top: 6px;
+  color: var(--tl-muted);
+  font-size: 11px;
+}
+
+.tl-tooltip {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  background: #0f1117;
+  color: var(--tl-text);
+  border: 1px solid #3a4152;
+  border-radius: 5px;
+  padding: 6px 9px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.tl-tooltip-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.tl-tooltip-cat {
+  color: var(--tl-muted);
+  font-weight: 400;
+}
+.tl-tooltip-text {
+  margin-top: 3px;
+}
+.tl-tooltip-muted {
+  margin-top: 3px;
+  color: var(--tl-muted);
+  font-style: italic;
+}
+.tl-badge {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tl-badge-error {
+  background: var(--tl-error);
+  color: #1a0000;
+}
+.tl-badge-running {
+  background: #3a4152;
+}
