@@ -1,0 +1,42 @@
+:root {
+  --bg: #12151d;
+  --panel: #181c27;
+  --border: #2c3244;
+  --text: #e3e6ee;
+  --muted: #9aa1b5;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+h3 { font-size: 13px; margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+button, select { background: #232a3d; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+button:hover { background: #2d3650; }
+button:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid #6ea8ff; outline-offset: 1px; }
+code, pre { font-family: ui-monospace, Menlo, monospace; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+.app-header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--panel); }
+.app-header h1 { font-size: 16px; margin: 0; }
+.session-picker { min-width: 0; max-width: 520px; flex: 1; }
+
+.app-main { display: flex; flex: 1; min-height: 0; }
+.timeline-area { flex: 1; min-width: 0; min-height: 400px; display: flex; flex-direction: column; overflow: auto; padding: 12px; }
+.side-panel { width: 360px; flex-shrink: 0; border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); }
+.tabs button { flex: 1; border: 0; border-radius: 0; background: transparent; padding: 9px; }
+.tabs button[aria-selected="true"] { border-bottom: 2px solid #6ea8ff; background: #20273a; }
+.side-body { padding: 14px; overflow-y: auto; flex: 1; }
+
+.notice { margin: 40px auto; max-width: 520px; padding: 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+.notice.error { border-color: #7a3b3b; }
+.notice .actions { display: flex; gap: 8px; margin-top: 12px; }
+
+@media (max-width: 1100px) { .side-panel { width: 300px; } }
+@media (max-width: 800px) {
+  .app-main { flex-direction: column; overflow-y: auto; }
+  .side-panel { width: auto; border-left: 0; border-top: 1px solid var(--border); }
+}
