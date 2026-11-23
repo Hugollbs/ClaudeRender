@@ -6,7 +6,6 @@ let widgetWidth: CGFloat = 300
 
 struct WidgetView: View {
     @ObservedObject var store: LiveStore
-    @State private var choosing = false // mode "choisir les sessions à suivre"
     let openDetail: (LiveSession) -> Void
 
     var body: some View {
@@ -17,7 +16,7 @@ struct WidgetView: View {
                 if let message = store.errorMessage {
                     Text(message).font(.caption).foregroundStyle(.orange)
                 }
-                let rows = choosing ? store.sessions : store.visible
+                let rows = store.choosing ? store.sessions : store.visible
                 if rows.isEmpty && store.errorMessage == nil {
                     Text(emptyText).font(.caption).foregroundStyle(.secondary)
                 }
@@ -39,7 +38,7 @@ struct WidgetView: View {
         HStack {
             Text("Claude Render").font(.caption.bold())
             Spacer()
-            Button(choosing ? "OK" : "✎") { choosing.toggle() }
+            Button(store.choosing ? "OK" : "✎") { store.choosing.toggle() }
                 .buttonStyle(.plain)
                 .font(.caption)
                 .help("Choisir les sessions à suivre")
@@ -49,7 +48,7 @@ struct WidgetView: View {
     private func row(_ session: LiveSession, now: Date) -> some View {
         let active = session.state(now: now) == .active
         return HStack(alignment: .top, spacing: 6) {
-            if choosing {
+            if store.choosing {
                 Image(systemName: store.followed.contains(session.id) ? "checkmark.square.fill" : "square")
                     .font(.caption)
             } else {
@@ -68,10 +67,10 @@ struct WidgetView: View {
                     .font(.caption2).foregroundStyle(.tertiary)
             }
         }
-        .opacity(active || choosing ? 1 : 0.6)
+        .opacity(active || store.choosing ? 1 : 0.6)
         .contentShape(Rectangle()) // toute la ligne est cliquable, pas seulement le texte
         .onTapGesture {
-            if choosing { store.toggleFollow(session.id) } else { openDetail(session) }
+            if store.choosing { store.toggleFollow(session.id) } else { openDetail(session) }
         }
     }
 }

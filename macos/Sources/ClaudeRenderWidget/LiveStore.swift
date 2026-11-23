@@ -11,6 +11,8 @@ final class LiveStore: ObservableObject {
     @Published private(set) var sessions: [LiveSession] = []
     @Published private(set) var errorMessage: String?
     @Published private(set) var followed: Set<String>
+    // Dans le store (et non en @State de la vue) pour que le panneau soit redimensionné au changement de mode.
+    @Published var choosing = false
 
     let client: LiveClient
     private var pollTask: Task<Void, Never>?
@@ -43,7 +45,11 @@ final class LiveStore: ObservableObject {
             errorMessage = nil
         } catch {
             // On garde la dernière liste connue : un raté réseau ponctuel ne doit pas vider le widget.
-            errorMessage = "Serveur injoignable : lance « npm run dev:server »"
+            if error is URLError {
+                errorMessage = "Serveur injoignable : lance « npm run dev:server »"
+            } else {
+                errorMessage = "Réponse inattendue du serveur : \(error.localizedDescription)"
+            }
         }
     }
 }

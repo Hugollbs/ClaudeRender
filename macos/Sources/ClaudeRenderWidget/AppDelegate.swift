@@ -48,15 +48,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Garde le coin haut-droit fixe quand la hauteur change ; place en haut à droite au premier appel.
     private func resizeAndAnchor(reposition: Bool = false) {
         guard let hosting = hostingView else { return }
+        hosting.layoutSubtreeIfNeeded() // force SwiftUI à finir sa mise en page avant de mesurer
         let size = hosting.fittingSize
-        var origin = panel.frame.origin
         var topRight = NSPoint(x: panel.frame.maxX, y: panel.frame.maxY)
         if reposition || panel.frame.isEmpty, let screen = NSScreen.screens.first {
             // screens.first = écran principal (celui de la barre de menus) ; NSScreen.main dépend du focus.
             let area = screen.visibleFrame // exclut la barre de menus
             topRight = NSPoint(x: area.maxX - 12, y: area.maxY - 12)
         }
-        origin = NSPoint(x: topRight.x - size.width, y: topRight.y - size.height)
+        let origin = NSPoint(x: topRight.x - size.width, y: topRight.y - size.height)
         panel.setFrame(NSRect(origin: origin, size: size), display: true)
     }
 
