@@ -64,7 +64,10 @@ export function Timeline(props: TimelineProps) {
   const { view, setView, resetView } = useZoomPan(fullStart, fullEnd, plotW, LABEL_W, chartRef);
 
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [enabledDeps, setEnabledDeps] = useState<Set<DependencyType>>(new Set(DEPENDENCY_TYPES));
+  const [enabledDeps, setEnabledDeps] = useState<Set<DependencyType>>(
+    // Les flèches "data" sont nombreuses et approximatives : masquées par défaut, case à cocher pour les voir.
+    new Set(DEPENDENCY_TYPES.filter((type) => type !== "data")),
+  );
   const [hover, setHover] = useState<HoverInfo | null>(null);
   // Un zoom ou un déplacement démonte le span survolé sans émettre pointerleave : on ferme l'infobulle.
   useEffect(() => setHover(null), [view]);

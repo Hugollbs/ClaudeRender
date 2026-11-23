@@ -3,6 +3,7 @@ import type { MetricsFilter, Pricing, Session } from "../shared/types";
 import { computeMetrics } from "../shared/metrics";
 import { CATEGORY_COLORS, spanCategory } from "./timeline/colors";
 import { formatClock, formatCost, formatDuration, formatPercent, formatTokens } from "./format";
+import { formatRelative } from "./timeline/layout";
 
 interface Props {
   session: Session;
@@ -82,7 +83,7 @@ export function MetricsPanel({ session, pricing, filter, onSelectSpan, onClearLa
         )}
         {hasRange && (
           <span className="chip">
-            Plage : {formatClock(filter.from! - session.start)}–{formatClock(filter.to! - session.start)}
+            Plage : {formatRelative(filter.from! - session.start)} → {formatRelative(filter.to! - session.start)}
             <button type="button" onClick={onClearRange} aria-label="Retirer la plage">×</button>
           </span>
         )}

@@ -25,7 +25,8 @@ export function Tooltip({ hover }: { hover: HoverInfo }) {
     <div className="tl-tooltip" style={{ left, top, width: TOOLTIP_WIDTH }}>
       <div className="tl-tooltip-title">
         {span.tool ?? CATEGORY_LABELS[spanCategory(span)]}
-        <span className="tl-tooltip-cat"> · {CATEGORY_LABELS[spanCategory(span)]}</span>
+        {/* Sans outil (réflexion, texte), le titre est déjà la catégorie : pas de répétition. */}
+        {span.tool && <span className="tl-tooltip-cat"> · {CATEGORY_LABELS[spanCategory(span)]}</span>}
         {span.status !== "ok" && <span className={`tl-badge tl-badge-${span.status}`}>{span.status}</span>}
       </div>
       <div>Durée : {formatDuration(span.end - span.start)}</div>
