@@ -1,0 +1,4 @@
+{"type":"fork-context-ref","agentId":"sub1"}
+{"type":"assistant","uuid":"s0","requestId":"r4","isSidechain":true,"timestamp":"2026-01-01T10:00:15.000Z","message":{"model":"claude-test","usage":{"input_tokens":1,"output_tokens":9},"content":[{"type":"tool_use","id":"t_agent","name":"Agent","input":{"description":"Fait un sous-travail"}}]}}
+{"type":"assistant","uuid":"s1","requestId":"rs1","isSidechain":true,"timestamp":"2026-01-01T10:00:25.000Z","message":{"model":"claude-test","usage":{"input_tokens":3,"output_tokens":11},"content":[{"type":"tool_use","id":"s_grep","name":"Grep","input":{"pattern":"foo"}}]}}
+{"type":"user","uuid":"s2","isSidechain":true,"timestamp":"2026-01-01T10:00:30.000Z","message":{"content":[{"type":"tool_result","tool_use_id":"s_grep","content":"rien"}]}}
