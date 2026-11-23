@@ -30,6 +30,8 @@ export interface Span {
   end: number;
   status: SpanStatus;
   tokens?: TokenUsage; // porté par UN seul span par requête API (évite le double comptage)
+  model?: string; // modèle de la requête, présent avec tokens (sert au calcul du coût)
+  agentId?: string; // pour type "subagent" : id du sous-agent lancé (= id de sa lane)
   summary: string; // texte court pour l'affichage
   input?: unknown; // arguments de l'outil (pour détecter les appels répétés, les chemins de fichier)
   filePath?: string; // chemin extrait de input.file_path, pour les dépendances "data"
@@ -62,4 +64,59 @@ export interface SessionSummary {
   start: number;
   end: number;
   subagentCount: number;
+}
+
+// ---- Métriques (calculées par src/shared/metrics.ts) ----
+
+// Barème en dollars par million de tokens, chargé depuis config/pricing.json.
+export interface ModelPrice {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheCreation: number;
+}
+export interface Pricing {
+  default: ModelPrice; // utilisé si le modèle n'est pas listé
+  models: Record<string, ModelPrice>; // clé = préfixe du nom de modèle
+}
+
+// Filtre appliqué aux métriques : sous-agent sélectionné et/ou plage de temps.
+export interface MetricsFilter {
+  laneId?: string;
+  from?: number;
+  to?: number;
+}
+
+export interface ToolStat {
+  tool: string;
+  count: number;
+  totalMs: number;
+  errors: number;
+}
+export interface LaneStat {
+  laneId: string;
+  name: string;
+  toolCalls: number;
+  totalMs: number;
+  tokens: TokenUsage;
+  costUsd: number;
+}
+// Même outil + mêmes arguments plusieurs fois de suite dans une même lane.
+export interface RepeatedCall {
+  tool: string;
+  inputKey: string; // arguments sérialisés (tronqués)
+  count: number;
+  spanIds: string[];
+}
+export interface Metrics {
+  durationMs: number; // fin - début de la plage considérée
+  tokens: TokenUsage;
+  costUsd: number;
+  toolCalls: number;
+  byTool: ToolStat[];
+  byLane: LaneStat[];
+  thinkingMs: number;
+  actingMs: number; // temps passé dans les outils
+  errors: Span[];
+  repeated: RepeatedCall[];
 }

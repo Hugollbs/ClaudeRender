@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 // Le front tourne sur Vite (5173) et renvoie /api vers le serveur Express (3001).
