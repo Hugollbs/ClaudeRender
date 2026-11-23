@@ -37,6 +37,12 @@ describe("summarizeLive", () => {
     expect(live.lastActivity).toBe(5000);
   });
 
+  it("ne renvoie jamais un nombre de terminés négatif (spans d'agent sans lane)", () => {
+    const live = summarizeLive({ ...base, lanes: [base.lanes[0]] });
+    expect(live.agentsTotal).toBe(2); // les 2 spans d'agent comptent même sans lane
+    expect(live.agentsDone).toBeGreaterThanOrEqual(0);
+  });
+
   it("gère une session sans aucun span", () => {
     const live = summarizeLive({ ...base, spans: [], lanes: [base.lanes[0]] });
     expect(live.lastAction).toBe("");

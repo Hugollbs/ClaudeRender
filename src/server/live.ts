@@ -8,7 +8,8 @@ export const DEFAULT_ACTIVE_WINDOW_MS = 10 * 60 * 1000;
 export function summarizeLive(session: Session): LiveSession {
   const subagentSpans = session.spans.filter((s) => s.type === "subagent");
   const agentsRunning = subagentSpans.filter((s) => s.status === "running").length;
-  const agentsTotal = session.lanes.filter((l) => l.type === "subagent").length;
+  // Un span d'agent peut exister sans fichier subagents/ (donc sans lane) : on prend le plus grand des deux.
+  const agentsTotal = Math.max(session.lanes.filter((l) => l.type === "subagent").length, subagentSpans.length);
 
   let last = session.spans[0];
   for (const span of session.spans) {
@@ -22,7 +23,7 @@ export function summarizeLive(session: Session): LiveSession {
     lastActivity: session.end,
     agentsTotal,
     agentsRunning,
-    agentsDone: agentsTotal - agentsRunning,
+    agentsDone: Math.max(0, agentsTotal - agentsRunning),
     hasRunningSpan: session.spans.some((s) => s.status === "running"),
     lastAction: last ? last.summary : "",
     lastTool: last?.tool,
@@ -37,9 +38,18 @@ export async function listLive(
   windowMs: number = DEFAULT_ACTIVE_WINDOW_MS,
 ): Promise<LiveSession[]> {
   const recent = (await listSessions(root)).filter((s) => now - s.end <= windowMs);
-  const sessions = await Promise.all(recent.map((s) => loadSession(root, s.id)));
-  return sessions
-    .filter((s): s is Session => s !== null)
-    .map(summarizeLive)
-    .sort((a, b) => b.lastActivity - a.lastActivity);
+  const results = await Promise.all(
+    recent.map(async (summary) => {
+      try {
+        const session = await loadSession(root, summary.id);
+        // lastActivity = mtime du fichier (comme le filtre) : un prompt ou un outil en cours le fait avancer.
+        return session ? { ...summarizeLive(session), lastActivity: summary.end } : null;
+      } catch (err) {
+        // Un transcript illisible ne doit pas faire échouer toute la liste.
+        console.warn(`[live] session ignorée : ${summary.id} (${(err as Error).message})`);
+        return null;
+      }
+    }),
+  );
+  return results.filter((s): s is LiveSession => s !== null).sort((a, b) => b.lastActivity - a.lastActivity);
 }

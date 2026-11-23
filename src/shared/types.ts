@@ -128,7 +128,7 @@ export interface LiveSession {
   id: string;
   project: string;
   start: number;
-  lastActivity: number; // fin du dernier span, en ms
+  lastActivity: number; // dernière écriture du transcript (mtime), en ms
   agentsTotal: number; // nombre de sous-agents lancés
   agentsRunning: number; // sous-agents sans fin connue
   agentsDone: number; // agentsTotal - agentsRunning
