@@ -1,4 +1,5 @@
 import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
+import { request as httpRequest } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -83,5 +84,30 @@ describe("loadSession", () => {
     expect(await loadSession(root, "../etc/passwd")).toBeNull();
     expect(await loadSession(root, "..")).toBeNull();
     expect(await loadSession(root, "a/b")).toBeNull();
+  });
+});
+
+describe("contrôle de l'en-tête Host", () => {
+  it("refuse un hôte inconnu et accepte localhost", async () => {
+    const { createApp } = await import("../src/server/index.js");
+    const server = createApp(root).listen(0, "127.0.0.1");
+    await new Promise((resolve) => server.once("listening", resolve));
+    const { port } = server.address() as { port: number };
+    try {
+      // fetch interdit parfois de changer Host : on passe par http.request pour être sûr.
+      const refuse = await new Promise<number>((resolve, reject) => {
+        const req = httpRequest({ host: "127.0.0.1", port, path: "/api/sessions", headers: { Host: "evil.example.com" } }, (res) => {
+          res.resume();
+          resolve(res.statusCode ?? 0);
+        });
+        req.on("error", reject);
+        req.end();
+      });
+      const accepte = await fetch(`http://127.0.0.1:${port}/api/sessions`);
+      expect(refuse).toBe(403);
+      expect(accepte.status).toBe(200);
+    } finally {
+      server.close();
+    }
   });
 });

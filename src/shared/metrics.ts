@@ -95,9 +95,12 @@ export function computeMetrics(session: Session, filter: MetricsFilter, pricing:
 
   let durationMs = 0;
   if (from !== undefined && to !== undefined) {
-    durationMs = to - from;
+    durationMs = Math.max(0, to - from);
   } else if (kept.length > 0) {
-    durationMs = Math.max(...kept.map((s) => s.end)) - Math.min(...kept.map((s) => s.start));
+    // reduce plutôt que Math.max(...tableau) : le spread plante au-delà de ~120 000 éléments.
+    const lastEnd = kept.reduce((m, s) => Math.max(m, s.end), -Infinity);
+    const firstStart = kept.reduce((m, s) => Math.min(m, s.start), Infinity);
+    durationMs = lastEnd - firstStart;
   }
 
   const tokens = emptyTokens();

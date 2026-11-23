@@ -59,3 +59,18 @@ describe("parseSession", () => {
     expect(parseSession("vide", "", [])).toMatchObject({ spans: [], start: 0, end: 0 });
   });
 });
+
+describe("robustesse du parseur", () => {
+  it("ne produit jamais de durée négative, même avec des timestamps désordonnés", () => {
+    const lines = [
+      { type: "assistant", uuid: "a", requestId: "r", timestamp: "2026-01-01T10:00:10Z", thinkingDurationMs: -500, message: { content: [{ type: "thinking", thinking: "" }] } },
+      { type: "assistant", uuid: "b", requestId: "r2", timestamp: "2026-01-01T10:00:05Z", message: { content: [{ type: "text", text: "salut" }] } },
+    ].map((l) => JSON.stringify(l)).join("\n");
+    for (const s of parseSession("x", lines, []).spans) expect(s.end).toBeGreaterThanOrEqual(s.start);
+  });
+
+  it("applique la notification de fin même si le fichier du sous-agent est absent", () => {
+    const s = parseSession("x", read("main.jsonl"), []);
+    expect(s.spans.find((sp) => sp.id === "t_agent")).toMatchObject({ status: "ok", end: Date.parse("2026-01-01T10:01:00Z") });
+  });
+});

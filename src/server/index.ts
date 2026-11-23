@@ -11,8 +11,20 @@ const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", ".."
 const PRICING_FILE = join(PROJECT_ROOT, "config", "pricing.json");
 const CLIENT_DIST = join(PROJECT_ROOT, "dist", "client");
 
+// Noms d'hôte acceptés. Sans ce contrôle, un site web malveillant pourrait faire résoudre son
+// propre domaine vers 127.0.0.1 (attaque "DNS rebinding") et lire vos transcripts via le navigateur.
+const ALLOWED_HOST = /^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/;
+
 export function createApp(root: string = DEFAULT_PROJECTS_DIR) {
   const app = express();
+
+  app.use((req, res, next) => {
+    if (!ALLOWED_HOST.test(req.headers.host ?? "")) {
+      res.status(403).json({ error: "Hôte non autorisé" });
+      return;
+    }
+    next();
+  });
 
   app.get("/api/sessions", async (_req, res) => {
     try {

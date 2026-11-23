@@ -43,15 +43,17 @@ interface Shared {
 
 function parseLines(text: string): Line[] {
   const lines: Line[] = [];
+  let invalid = 0;
   for (const raw of text.split("\n")) {
     if (!raw.trim()) continue;
     try {
       lines.push(JSON.parse(raw));
     } catch {
       // Une ligne tronquée (session en cours d'écriture) ne doit pas casser toute la session.
-      console.warn("Ligne JSONL invalide ignorée");
+      invalid++;
     }
   }
+  if (invalid > 0) console.warn(`${invalid} ligne(s) JSONL invalide(s) ignorée(s)`);
   return lines;
 }
 
@@ -120,11 +122,12 @@ function parseLane(text: string, laneId: string, shared: Shared, isMain: boolean
       let blockIndex = 0;
 
       for (const block of content) {
-        const spanIdBase = `${line.uuid ?? ts}#${blockIndex++}`;
+        const spanIdBase = `${laneId}:${line.uuid ?? ts}#${blockIndex++}`;
         let span: Span | null = null;
 
         if (block.type === "thinking") {
-          const duration = line.thinkingDurationMs ?? 0;
+          const raw = line.thinkingDurationMs;
+          const duration = typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : 0;
           span = {
             id: spanIdBase, laneId, type: "thinking", start: ts - duration, end: ts, status: "ok",
             summary: `Réflexion (${(duration / 1000).toFixed(1)} s)`,
@@ -133,7 +136,8 @@ function parseLane(text: string, laneId: string, shared: Shared, isMain: boolean
           if (block.thinking) span.thinkingContent = block.thinking;
         } else if (block.type === "text") {
           span = {
-            id: spanIdBase, laneId, type: "text", start: previousTs ?? ts, end: ts, status: "ok",
+            id: spanIdBase, laneId, type: "text", start: Math.min(previousTs ?? ts, ts), end: ts, status: "ok", // min : timestamps parfois non monotones
+            
             summary: truncate(block.text ?? "", MAX_SUMMARY), detail: truncate(block.text ?? "", MAX_DETAIL),
           };
         } else if (block.type === "tool_use") {
@@ -257,22 +261,27 @@ export function parseSession(id: string, mainText: string, subagents: RawSubagen
 
     // On repart de `spans` (déjà dédoublonnés), pas de parse.spans qui contient l'appel rejoué.
     const laneSpans = spans.filter((s) => s.laneId === raw.agentId);
-    if (laneSpans.length === 0) continue;
+    if (laneSpans.length === 0 || !agentSpan) continue;
     const ordered = [...laneSpans].sort((a, b) => a.start - b.start);
-    const subEnd = laneSpans.reduce((m, s) => Math.max(m, s.end), 0);
-    if (!agentSpan) continue;
     dependencies.push({ fromSpanId: agentSpan.id, toSpanId: ordered[0].id, type: "spawn" });
     const last = ordered.reduce((a, b) => (b.end >= a.end ? b : a));
     dependencies.push({ fromSpanId: last.id, toSpanId: agentSpan.id, type: "result" });
+  }
 
-    // Fin réelle de l'agent async : la notification, sinon la dernière activité connue.
-    const notif = notifications.get(agentSpan.id);
+  // Fin réelle des agents lancés en arrière-plan : la notification, sinon la dernière activité
+  // connue. Fait ici, hors de la boucle des lanes, pour que la notification soit appliquée
+  // même si le fichier du sous-agent est absent ou vide.
+  const asyncLaunched = new Set(allParses.flatMap((p) => [...p.launches.keys()]));
+  for (const span of spans) {
+    if (!asyncLaunched.has(span.id)) continue; // un agent synchrone garde le statut de son tool_result
+    const notif = notifications.get(span.id);
     if (notif) {
-      agentSpan.end = Math.max(agentSpan.end, notif.ts);
-      agentSpan.status = notif.status === "completed" ? "ok" : "error";
+      span.end = Math.max(span.end, notif.ts);
+      span.status = notif.status === "completed" ? "ok" : "error";
     } else {
-      agentSpan.end = Math.max(agentSpan.end, subEnd);
-      agentSpan.status = "running";
+      const subEnd = spans.filter((s) => s.laneId === span.agentId).reduce((m, s) => Math.max(m, s.end), 0);
+      span.end = Math.max(span.end, subEnd);
+      span.status = "running"; // pas de notification de fin dans le transcript : on ne l'invente pas
     }
   }
   dependencies.push(...detectDataDependencies(spans));
