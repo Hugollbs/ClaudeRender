@@ -39,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async { self?.resizeAndAnchor() }
         }
 
+        store.onNewSession = { [weak self] session in self?.openDetail(session) }
         makeStatusItem()
         resizeAndAnchor(reposition: true)
         panel.orderFrontRegardless()
@@ -66,6 +67,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(withTitle: "Afficher / masquer le widget", action: #selector(togglePanel), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Ouvrir la version détaillée", action: #selector(openHome), keyEquivalent: "").target = self
+        let autoOpenItem = menu.addItem(withTitle: "Ouvrir la page à chaque nouvelle session", action: #selector(toggleAutoOpen(_:)), keyEquivalent: "")
+        autoOpenItem.target = self
+        autoOpenItem.state = store.autoOpen ? .on : .off
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quitter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         item.menu = menu
@@ -74,6 +78,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func togglePanel() {
         if panel.isVisible { panel.orderOut(nil) } else { panel.orderFrontRegardless() }
+    }
+
+    @objc private func toggleAutoOpen(_ item: NSMenuItem) {
+        store.autoOpen.toggle()
+        item.state = store.autoOpen ? .on : .off
     }
 
     @objc private func openHome() {
