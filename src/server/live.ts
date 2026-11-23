@@ -27,6 +27,16 @@ export function summarizeLive(session: Session): LiveSession {
     hasRunningSpan: session.spans.some((s) => s.status === "running"),
     lastAction: last ? last.summary : "",
     lastTool: last?.tool,
+    agents: subagentSpans
+      .map((s) => ({
+        id: s.agentId ?? s.id, // sans agentId (lancement non relié), l'id du span suffit à l'identifier
+        parentId: s.laneId,
+        name: s.summary,
+        start: s.start,
+        end: s.end,
+        running: s.status === "running",
+      }))
+      .sort((a, b) => a.start - b.start),
   };
 }
 

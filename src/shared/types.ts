@@ -124,6 +124,16 @@ export interface Metrics {
 // ---- Vue "live" (GET /api/live), consommée par le widget macOS ----
 
 // Résumé ultra condensé d'une session récemment active.
+// Un sous-agent tel que le widget le dessine : une branche qui part de son parent et y revient.
+export interface LiveAgent {
+  id: string;
+  parentId: string; // "main" ou l'id de l'agent qui l'a lancé
+  name: string; // description courte (infobulle)
+  start: number;
+  end: number;
+  running: boolean;
+}
+
 export interface LiveSession {
   id: string;
   project: string;
@@ -135,4 +145,5 @@ export interface LiveSession {
   hasRunningSpan: boolean; // au moins un span "running" (outil en cours)
   lastAction: string; // résumé du dernier span (par début)
   lastTool?: string;
+  agents: LiveAgent[]; // triés par début
 }

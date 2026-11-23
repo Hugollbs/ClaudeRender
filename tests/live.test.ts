@@ -43,10 +43,19 @@ describe("summarizeLive", () => {
     expect(live.agentsDone).toBeGreaterThanOrEqual(0);
   });
 
+  it("expose la chronologie des agents, triée par début, avec leur parent", () => {
+    const nested = span({ id: "4", laneId: "a1", type: "subagent", agentId: "a3", start: 50, end: 300, summary: "lance a3" });
+    const live = summarizeLive({ ...base, spans: [...base.spans, nested] });
+    expect(live.agents.map((a) => a.id)).toEqual(["a3", "a1", "a2"]);
+    expect(live.agents[0]).toEqual({ id: "a3", parentId: "a1", name: "lance a3", start: 50, end: 300, running: false });
+    expect(live.agents[2].running).toBe(true);
+  });
+
   it("gère une session sans aucun span", () => {
     const live = summarizeLive({ ...base, spans: [], lanes: [base.lanes[0]] });
     expect(live.lastAction).toBe("");
     expect(live.agentsTotal).toBe(0);
     expect(live.hasRunningSpan).toBe(false);
+    expect(live.agents).toEqual([]);
   });
 });
