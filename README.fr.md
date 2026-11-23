@@ -9,6 +9,16 @@ Deux vues :
 - **Timeline** en swimlanes (agent principal + une lane par sous-agent), avec les dépendances en flèches ;
 - **Métriques** : durée, tokens, coût estimé, répartition par outil et par agent, réflexion vs action, erreurs, appels répétés.
 
+![Timeline avec lanes de sous-agents et flèches de dépendance](docs/screenshots/timeline.png)
+
+*Timeline : une lane par sous-agent (imbriqués), spans colorés par catégorie d'outil, flèches `spawn` (orange) et `result` (bleu), minimap en bas.*
+
+| Détail d'un span | Métriques sur une plage de temps |
+|---|---|
+| ![Panneau de détail](docs/screenshots/span-detail.png) | ![Panneau de métriques](docs/screenshots/metrics.png) |
+
+> Les captures utilisent les données de démo intégrées (aucune vraie session n'est affichée).
+
 ## Installation et lancement
 
 Prérequis : Node 20+ (testé avec Node 26).

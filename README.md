@@ -9,6 +9,16 @@ Two views:
 - **Timeline** in swimlanes (main agent + one lane per subagent), with dependencies drawn as arrows;
 - **Metrics**: duration, tokens, estimated cost, breakdown by tool and by agent, thinking vs. acting time, errors, repeated calls.
 
+![Timeline with subagent lanes and dependency arrows](docs/screenshots/timeline.png)
+
+*Timeline: one lane per (nested) subagent, spans colored by tool category, `spawn` (orange) and `result` (blue) arrows, minimap at the bottom.*
+
+| Span details | Metrics for a selected time range |
+|---|---|
+| ![Span details panel](docs/screenshots/span-detail.png) | ![Metrics panel](docs/screenshots/metrics.png) |
+
+> Screenshots use the built-in demo data (no real session is shown). The UI is in French.
+
 ## Install and run
 
 Requirements: Node 20+ (tested with Node 26).
