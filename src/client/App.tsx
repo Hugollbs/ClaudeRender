@@ -31,7 +31,10 @@ export function App() {
         if (cancelled) return;
         setSessions(list);
         setPricing(prices);
-        if (list.length > 0) setSelectedId(list[0].id);
+        // ?session=<id> (lien du widget macOS) ; sinon la plus récente.
+        const wanted = new URLSearchParams(window.location.search).get("session");
+        const target = list.find((s) => s.id === wanted) ?? list[0];
+        if (target) setSelectedId(target.id);
         else setLoading(false);
       })
       .catch((e: unknown) => {

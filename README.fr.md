@@ -45,6 +45,18 @@ Variables d'environnement : `PORT` (défaut 3001), `CLAUDE_PROJECTS_DIR` (défau
 - Clic sur un bloc = détail à droite ; clic sur le nom d'une lane = filtre les métriques sur ce sous-agent.
 - Les lanes de sous-agents sont repliables (▸/▾).
 
+## Widget macOS (optionnel)
+
+Un petit widget natif flottant, en haut à droite de l'écran principal, résume les sessions actives : projet, sous-agents terminés/lancés, dernière action, ancienneté. Clic sur une ligne = ouvre la version détaillée sur cette session ; le crayon permet de choisir les sessions à suivre. Icône dans la barre de menus pour l'afficher/masquer.
+
+```bash
+npm run dev:server                 # le serveur doit tourner (port 3001)
+cd macos && swift run ClaudeRenderWidget
+cd macos && swift test             # tests du Core
+```
+
+`CLAUDE_RENDER_URL` change l'adresse du serveur. Prérequis : macOS 13+, Swift 5.9+.
+
 ## Structure
 
 ```

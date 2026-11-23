@@ -120,3 +120,19 @@ export interface Metrics {
   errors: Span[];
   repeated: RepeatedCall[];
 }
+
+// ---- Vue "live" (GET /api/live), consommée par le widget macOS ----
+
+// Résumé ultra condensé d'une session récemment active.
+export interface LiveSession {
+  id: string;
+  project: string;
+  start: number;
+  lastActivity: number; // dernière écriture du transcript (mtime), en ms
+  agentsTotal: number; // nombre de sous-agents lancés
+  agentsRunning: number; // sous-agents sans fin connue
+  agentsDone: number; // agentsTotal - agentsRunning
+  hasRunningSpan: boolean; // au moins un span "running" (outil en cours)
+  lastAction: string; // résumé du dernier span (par début)
+  lastTool?: string;
+}

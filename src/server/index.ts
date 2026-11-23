@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { listLive } from "./live.js";
 import { DEFAULT_PROJECTS_DIR, listSessions, loadSession } from "./sessions.js";
 
 const DEFAULT_PORT = 3001;
@@ -29,6 +30,14 @@ export function createApp(root: string = DEFAULT_PROJECTS_DIR) {
   app.get("/api/sessions", async (_req, res) => {
     try {
       res.json(await listSessions(root));
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+    }
+  });
+
+  app.get("/api/live", async (_req, res) => {
+    try {
+      res.json(await listLive(root));
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
