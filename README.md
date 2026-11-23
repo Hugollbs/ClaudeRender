@@ -47,7 +47,13 @@ Environment variables: `PORT` (default 3001), `CLAUDE_PROJECTS_DIR` (default `~/
 
 ## macOS widget (optional)
 
-A small native floating widget, top-right of the main display, summarizes active sessions: project, finished/launched subagents, last action, age. Click a row to open the detailed view on that session; the pencil lets you pick which sessions to follow. A menu bar icon shows/hides it.
+A small native floating widget, top-right of the main display, summarizes active sessions: project, finished/launched subagents, last action, age.
+
+<img src="docs/screenshots/widget.png" alt="macOS widget listing three active sessions" width="300">
+
+- Click a row to open the detailed view on that session (`http://127.0.0.1:3001/?session=<id>`).
+- The pencil (✎) lets you pick which sessions to follow (none picked = show all).
+- The menu bar icon shows/hides the widget. Its menu also has **"Ouvrir la page à chaque nouvelle session"** (off by default): every newly started Claude session then opens its detailed page.
 
 ```bash
 npm run dev:server                 # the server must be running (port 3001)
@@ -66,10 +72,12 @@ src/server/parser.ts  JSONL -> Session parser (tested)
 src/server/sessions.ts, index.ts   session listing / loading, Express API
 src/client/           React UI (timeline/ = hand-made SVG, d3-scale for the scales only)
 config/pricing.json   price table per model (to adjust, see below)
+src/server/live.ts    active sessions summary (for the widget)
 tests/                vitest tests + hand-written fixtures
+macos/                native Swift widget (Core = testable logic, Widget = AppKit/SwiftUI UI)
 ```
 
-API: `GET /api/sessions`, `GET /api/sessions/:id`, `GET /api/pricing`.
+API: `GET /api/sessions`, `GET /api/sessions/:id`, `GET /api/pricing`, `GET /api/live`.
 
 ## Estimated cost
 
@@ -93,8 +101,8 @@ check and adjust them before relying on them.
   (carried by its first span). On a narrow time range, the cost may therefore be attributed to a different interval
   than the actual call.
 - **Undocumented format**: the transcript format may change with Claude Code versions.
-- Visual rendering was checked on a Chromium run (screenshots) and unit tests, not on Safari or Firefox;
-  performance on very large sessions (thousands of spans) is not measured in a browser.
+- Visual rendering was checked on Chromium (screenshots) and unit tests, not on Safari or Firefox.
+  Smooth up to ~20,000 spans in headless Chromium (no frame over 50 ms); the real sessions measured had about 1,000 spans.
 
 ## License
 

@@ -47,7 +47,13 @@ Variables d'environnement : `PORT` (défaut 3001), `CLAUDE_PROJECTS_DIR` (défau
 
 ## Widget macOS (optionnel)
 
-Un petit widget natif flottant, en haut à droite de l'écran principal, résume les sessions actives : projet, sous-agents terminés/lancés, dernière action, ancienneté. Clic sur une ligne = ouvre la version détaillée sur cette session ; le crayon permet de choisir les sessions à suivre. Icône dans la barre de menus pour l'afficher/masquer.
+Un petit widget natif flottant, en haut à droite de l'écran principal, résume les sessions actives : projet, sous-agents terminés/lancés, dernière action, ancienneté.
+
+<img src="docs/screenshots/widget.png" alt="Widget macOS listant trois sessions actives" width="300">
+
+- Clic sur une ligne = ouvre la version détaillée sur cette session (`http://127.0.0.1:3001/?session=<id>`).
+- Le crayon (✎) permet de choisir les sessions à suivre (aucune choisie = tout afficher).
+- L'icône de la barre de menus affiche/masque le widget. Son menu propose aussi **« Ouvrir la page à chaque nouvelle session »** (désactivé par défaut) : chaque nouvelle session Claude ouvre alors sa page détaillée.
 
 ```bash
 npm run dev:server                 # le serveur doit tourner (port 3001)
@@ -66,10 +72,12 @@ src/server/parser.ts  parseur JSONL -> Session (testé)
 src/server/sessions.ts, index.ts   liste / chargement des sessions, API Express
 src/client/           interface React (timeline/ = SVG fait main, d3-scale pour les échelles)
 config/pricing.json   barème de prix par modèle (à ajuster, voir ci-dessous)
+src/server/live.ts    résumé des sessions actives (pour le widget)
 tests/                tests vitest + fixtures écrites à la main
+macos/                widget natif Swift (Core = logique testable, Widget = interface AppKit/SwiftUI)
 ```
 
-API : `GET /api/sessions`, `GET /api/sessions/:id`, `GET /api/pricing`.
+API : `GET /api/sessions`, `GET /api/sessions/:id`, `GET /api/pricing`, `GET /api/live`.
 
 ## Coût estimé
 
@@ -92,7 +100,8 @@ vérifiez-les et ajustez-les avant de vous y fier.
 - **Tokens** : l'usage est recopié sur chaque ligne d'une même requête ; il n'est compté qu'une fois par requête
   (porté par le premier span). Sur une plage étroite, le coût peut donc être attribué à un autre intervalle que l'appel réel.
 - **Format non documenté** : le format des transcripts peut changer avec les versions de Claude Code.
-- Le rendu visuel n'a été vérifié que par tests unitaires et relecture de code, pas par captures d'écran.
+- Le rendu visuel a été vérifié sous Chromium (captures) et par tests unitaires, pas sous Safari ni Firefox.
+  Fluide jusqu'à ~20 000 spans dans Chromium headless (aucune frame > 50 ms) ; les vraies sessions mesurées avaient environ 1 000 spans.
 
 ## Licence
 
