@@ -52,6 +52,14 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(visibleSessions(all, followed: ["zzz"]).count, 0) // suivie mais plus active
     }
 
+    func testSessionsToAutoOpen() {
+        let all = [make(id: "a"), make(id: "b")]
+        XCTAssertEqual(sessionsToAutoOpen(known: [], current: [], followed: []).count, 0) // liste vide
+        XCTAssertEqual(sessionsToAutoOpen(known: ["a"], current: all, followed: []).map(\.id), ["b"]) // b est neuve
+        XCTAssertEqual(sessionsToAutoOpen(known: ["a", "b"], current: all, followed: []).count, 0) // déjà connues
+        XCTAssertEqual(sessionsToAutoOpen(known: ["a"], current: all, followed: ["a"]).count, 0) // filtre actif : b masquée
+    }
+
     func testURLs() {
         XCTAssertEqual(serverURL(from: [:]), defaultServerURL)
         XCTAssertEqual(serverURL(from: ["CLAUDE_RENDER_URL": "n'importe quoi"]), defaultServerURL)

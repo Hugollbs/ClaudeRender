@@ -31,6 +31,13 @@ public func visibleSessions(_ sessions: [LiveSession], followed: Set<String>) ->
     followed.isEmpty ? sessions : sessions.filter { followed.contains($0.id) }
 }
 
+// Sessions à ouvrir automatiquement : celles jamais vues (`known`) et visibles pour l'utilisateur.
+// Avec un filtre actif, une session neuve ne peut pas être « suivie » à l'avance : elle reste masquée
+// (comme dans le widget), donc rien ne s'ouvre.
+public func sessionsToAutoOpen(known: Set<String>, current: [LiveSession], followed: Set<String>) -> [LiveSession] {
+    visibleSessions(current, followed: followed).filter { !known.contains($0.id) }
+}
+
 extension LiveSession {
     private func seconds(since ms: Double, now: Date) -> Double {
         max(0, now.timeIntervalSince1970 - ms / 1000)
