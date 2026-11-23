@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+# Fichiers locaux (voir CLAUDE.md section 8)
+CLAUDE.md
+JOURNAL.md
+.claude/
