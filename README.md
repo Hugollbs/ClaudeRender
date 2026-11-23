@@ -45,6 +45,18 @@ Environment variables: `PORT` (default 3001), `CLAUDE_PROJECTS_DIR` (default `~/
 - Click a block for its details on the right; click a lane name to filter the metrics on that subagent.
 - Subagent lanes can be collapsed (▸/▾).
 
+## macOS widget (optional)
+
+A small native floating widget, top-right of the main display, summarizes active sessions: project, finished/launched subagents, last action, age. Click a row to open the detailed view on that session; the pencil lets you pick which sessions to follow. A menu bar icon shows/hides it.
+
+```bash
+npm run dev:server                 # the server must be running (port 3001)
+cd macos && swift run ClaudeRenderWidget
+cd macos && swift test             # Core tests
+```
+
+`CLAUDE_RENDER_URL` changes the server address. Requires macOS 13+, Swift 5.9+.
+
 ## Structure
 
 ```
