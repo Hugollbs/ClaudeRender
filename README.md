@@ -1,75 +1,79 @@
 # Claude Render
 
-Application web **locale** qui visualise le travail de Claude Code à partir de ses transcripts de session
-(`~/.claude/projects/**/*.jsonl`). Rien ne quitte votre machine : le serveur écoute sur `127.0.0.1` uniquement.
+🇫🇷 [Version française](README.fr.md)
 
-Deux vues :
-- **Timeline** en swimlanes (agent principal + une lane par sous-agent), avec les dépendances en flèches ;
-- **Métriques** : durée, tokens, coût estimé, répartition par outil et par agent, réflexion vs action, erreurs, appels répétés.
+A **local** web app that visualizes Claude Code's work from its session transcripts
+(`~/.claude/projects/**/*.jsonl`). Nothing leaves your machine: the server only listens on `127.0.0.1`.
 
-## Installation et lancement
+Two views:
+- **Timeline** in swimlanes (main agent + one lane per subagent), with dependencies drawn as arrows;
+- **Metrics**: duration, tokens, estimated cost, breakdown by tool and by agent, thinking vs. acting time, errors, repeated calls.
 
-Prérequis : Node 20+ (testé avec Node 26).
+## Install and run
+
+Requirements: Node 20+ (tested with Node 26).
 
 ```bash
 npm install
-npm run dev        # serveur (http://127.0.0.1:3001) + interface (http://localhost:5173)
+npm run dev        # server (http://127.0.0.1:3001) + UI (http://localhost:5173)
 ```
 
-Autres commandes :
+Other commands:
 
 ```bash
-npm test           # tests vitest
-npm run typecheck  # vérification TypeScript
-npm run build      # build du front dans dist/client (servi ensuite par le serveur Express)
+npm test           # vitest tests
+npm run typecheck  # TypeScript check
+npm run build      # build the front end into dist/client (then served by the Express server)
 ```
 
-Variables d'environnement : `PORT` (défaut 3001), `CLAUDE_PROJECTS_DIR` (défaut `~/.claude/projects`).
+Environment variables: `PORT` (default 3001), `CLAUDE_PROJECTS_DIR` (default `~/.claude/projects`).
 
-## Utilisation
+## Usage
 
-- Choisissez une session en haut (triées par date).
-- Molette = zoom, glisser = déplacer, **Shift + glisser** = sélectionner une plage de temps (les métriques suivent).
-- Clic sur un bloc = détail à droite ; clic sur le nom d'une lane = filtre les métriques sur ce sous-agent.
-- Les lanes de sous-agents sont repliables (▸/▾).
+- Pick a session at the top (sorted by date).
+- Mouse wheel = zoom, drag = pan, **Shift + drag** = select a time range (the metrics follow it).
+- Click a block for its details on the right; click a lane name to filter the metrics on that subagent.
+- Subagent lanes can be collapsed (▸/▾).
 
 ## Structure
 
 ```
-src/shared/types.ts   modèle de données (Session, Lane, Span, Dependency, Metrics…)
-src/shared/metrics.ts calcul des métriques (fonction pure, utilisée côté client)
-src/server/parser.ts  parseur JSONL -> Session (testé)
-src/server/sessions.ts, index.ts   liste / chargement des sessions, API Express
-src/client/           interface React (timeline/ = SVG fait main, d3-scale pour les échelles)
-config/pricing.json   barème de prix par modèle (à ajuster, voir ci-dessous)
-tests/                tests vitest + fixtures écrites à la main
+src/shared/types.ts   data model (Session, Lane, Span, Dependency, Metrics...)
+src/shared/metrics.ts metrics computation (pure function, used on the client side)
+src/server/parser.ts  JSONL -> Session parser (tested)
+src/server/sessions.ts, index.ts   session listing / loading, Express API
+src/client/           React UI (timeline/ = hand-made SVG, d3-scale for the scales only)
+config/pricing.json   price table per model (to adjust, see below)
+tests/                vitest tests + hand-written fixtures
 ```
 
-API : `GET /api/sessions`, `GET /api/sessions/:id`, `GET /api/pricing`.
+API: `GET /api/sessions`, `GET /api/sessions/:id`, `GET /api/pricing`.
 
-## Coût estimé
+## Estimated cost
 
-Les transcripts ne contiennent **pas** le coût en dollars. Il est calculé à partir de `config/pricing.json`
-(dollars par million de tokens, par préfixe de modèle). **Les valeurs fournies sont des exemples** :
-vérifiez-les et ajustez-les avant de vous y fier.
+Transcripts do **not** contain the cost in dollars. It is computed from `config/pricing.json`
+(dollars per million tokens, per model prefix). **The provided values are examples**:
+check and adjust them before relying on them.
 
-## Limites connues (liées aux données)
+## Known limitations (caused by the data)
 
-- **Contenu de la réflexion indisponible** : les blocs `thinking` sont vides dans les transcripts. Seule leur durée
-  (`thinkingDurationMs`) et leur nombre de tokens sont connus. Les cartes de réflexion n'affichent donc pas de texte.
-- **Durées approximatives** : une ligne n'a qu'un seul horodatage. Un outil dure de son `tool_use` à son `tool_result` ;
-  un bloc de texte est estimé depuis la ligne précédente ; la position d'une réflexion est déduite de sa durée.
-- **Sous-agents en arrière-plan** : leur fin réelle vient d'une `task-notification` envoyée au parent. Si elle est absente
-  du transcript, l'agent reste affiché « en cours » plutôt que d'inventer une fin.
-- **Sous-agents synchrones** : non observés dans les transcripts utilisés pour écrire le parseur (tous étaient
-  asynchrones) ; leur prise en charge n'est pas vérifiée sur des données réelles.
-- **Dépendances `data`** : un fichier écrit (Write/Edit) puis lu (Read) plus tard. C'est une heuristique sur le chemin :
-  rien ne prouve que la lecture a utilisé la donnée. On ne relie une écriture qu'à la première lecture qui suit.
-- **Tokens** : l'usage est recopié sur chaque ligne d'une même requête ; il n'est compté qu'une fois par requête
-  (porté par le premier span). Sur une plage étroite, le coût peut donc être attribué à un autre intervalle que l'appel réel.
-- **Format non documenté** : le format des transcripts peut changer avec les versions de Claude Code.
-- Le rendu visuel n'a été vérifié que par tests unitaires et relecture de code, pas par captures d'écran.
+- **Thinking content is unavailable**: `thinking` blocks are empty in the transcripts. Only their duration
+  (`thinkingDurationMs`) and token count are known, so thinking cards show no text.
+- **Approximate durations**: a line has a single timestamp. A tool lasts from its `tool_use` to its `tool_result`;
+  a text block is estimated from the previous line; the position of a thinking block is derived from its duration.
+- **Background subagents**: their real end comes from a `task-notification` sent to the parent. If it is missing
+  from the transcript, the agent stays shown as "running" rather than inventing an end.
+- **Synchronous subagents**: not observed in the transcripts used to write the parser (all were asynchronous);
+  their handling is not verified on real data.
+- **`data` dependencies**: a file written (Write/Edit) then read (Read) later. This is a heuristic on file paths:
+  nothing proves the read actually used the written data. A write is only linked to the first read that follows.
+- **Tokens**: usage is copied onto every line of the same API request; it is counted once per request
+  (carried by its first span). On a narrow time range, the cost may therefore be attributed to a different interval
+  than the actual call.
+- **Undocumented format**: the transcript format may change with Claude Code versions.
+- Visual rendering was checked on a Chromium run (screenshots) and unit tests, not on Safari or Firefox;
+  performance on very large sessions (thousands of spans) is not measured in a browser.
 
-## Licence
+## License
 
 MIT
