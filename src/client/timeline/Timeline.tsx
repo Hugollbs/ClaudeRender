@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import type { DependencyType, Session, Span } from "../../shared/types";
 import {
@@ -66,6 +66,8 @@ export function Timeline(props: TimelineProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [enabledDeps, setEnabledDeps] = useState<Set<DependencyType>>(new Set(DEPENDENCY_TYPES));
   const [hover, setHover] = useState<HoverInfo | null>(null);
+  // Un zoom ou un déplacement démonte le span survolé sans émettre pointerleave : on ferme l'infobulle.
+  useEffect(() => setHover(null), [view]);
   const [draft, setDraft] = useState<[number, number] | null>(null); // plage en cours de tracé
 
   // ---- Données dérivées (recalculées seulement si la session ou le repli change) ----

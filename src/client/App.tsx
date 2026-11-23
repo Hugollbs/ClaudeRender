@@ -149,7 +149,7 @@ export function App() {
             <div className="side-body">
               {tab === "detail" ? (
                 selectedSpan ? (
-                  <SpanDetail span={selectedSpan} session={session} onDeselect={() => setSpanId(null)} />
+                  <SpanDetail key={selectedSpan.id} span={selectedSpan} session={session} onDeselect={() => setSpanId(null)} />
                 ) : (
                   <p className="muted">Sélectionne un span dans la timeline pour voir son détail.</p>
                 )

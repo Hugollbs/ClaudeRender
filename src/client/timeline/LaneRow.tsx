@@ -80,8 +80,11 @@ export const LaneSpans = memo(function LaneSpans(p: SpansProps) {
     <g opacity={p.dimmed ? 0.4 : 1}>
       {visible.map((span) => {
         const category = spanCategory(span);
-        const x = toX(span.start);
-        const w = Math.max(MIN_SPAN_PX, toX(span.end) - x);
+        // On rogne la géométrie à la fenêtre : un span d'1 h en zoom max ferait ~7e7 px de large,
+        // ce que certains navigateurs dessinent mal (le clipPath ne rogne que l'affichage).
+        const rawX = toX(span.start);
+        const x = Math.max(rawX, -1);
+        const w = Math.max(MIN_SPAN_PX, Math.min(toX(span.end), p.plotWidth + 1) - x);
         const row = p.collapsed ? 0 : (p.rowOf.get(span.id) ?? 0);
         const h = p.collapsed ? 4 : span.type === "thinking" ? SUB_H - 4 : SUB_H;
         const top = p.collapsed

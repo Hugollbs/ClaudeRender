@@ -28,7 +28,9 @@ export function useZoomPan(
       const x = e.clientX - el.getBoundingClientRect().left - labelWidth;
       if (x < 0 || x > plotWidth) return; // sur les libellés : défilement normal
       e.preventDefault();
-      const factor = Math.exp(e.deltaY * WHEEL_SENSITIVITY);
+      // deltaMode 1 = le delta est en lignes (Firefox, souris à crans) : sans conversion, le zoom est quasi nul.
+      const deltaY = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      const factor = Math.exp(deltaY * WHEEL_SENSITIVITY);
       setView((v) => zoomView(v, x / plotWidth, factor, fullStart, fullEnd));
     };
     el.addEventListener("wheel", onWheel, { passive: false });
