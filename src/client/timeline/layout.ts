@@ -80,6 +80,56 @@ export function visibleSpans(spans: Span[], t0: number, t1: number, msPerPx: num
   );
 }
 
+// ---------- Minimap : regroupement par colonne de pixels ----------
+
+export interface MinimapBlock {
+  band: number; // index de la bande (lane)
+  x0: number; // colonne de début (pixels, entier)
+  x1: number; // colonne de fin exclue
+  color: string;
+}
+
+// Une minimap de 1200 px ne peut afficher que 1200 colonnes par bande : dessiner 50 000 rects
+// est inutile. On marque les colonnes occupées de chaque bande, puis on fusionne les colonnes
+// voisines de même couleur en un seul bloc. Le nombre de blocs est donc borné par bandes × largeur.
+// Une erreur l'emporte sur les autres spans de sa colonne (comme dans la timeline, elle reste visible).
+export function groupMinimapSpans(
+  spans: Span[],
+  bandOf: Map<string, number>,
+  bandCount: number,
+  full0: number,
+  full1: number,
+  width: number,
+  colorOf: (span: Span) => string,
+  errorColor: string,
+): MinimapBlock[] {
+  const cols = Math.max(1, Math.ceil(width));
+  const pxPerMs = cols / Math.max(1, full1 - full0);
+  const grid: (string | undefined)[][] = Array.from({ length: bandCount }, () => new Array(cols));
+  for (const s of spans) {
+    const band = bandOf.get(s.laneId) ?? 0;
+    const first = Math.min(cols - 1, Math.max(0, Math.floor((s.start - full0) * pxPerMs)));
+    const last = Math.min(cols - 1, Math.max(first, Math.floor((s.end - full0) * pxPerMs)));
+    const color = s.status === "error" ? errorColor : colorOf(s);
+    for (let c = first; c <= last; c++) {
+      if (grid[band][c] === undefined || color === errorColor) grid[band][c] = color;
+    }
+  }
+  const blocks: MinimapBlock[] = [];
+  grid.forEach((row, band) => {
+    let c = 0;
+    while (c < cols) {
+      const color = row[c];
+      if (color === undefined) { c++; continue; }
+      let end = c + 1;
+      while (end < cols && row[end] === color) end++;
+      blocks.push({ band, x0: c, x1: end, color });
+      c = end;
+    }
+  });
+  return blocks;
+}
+
 // Premier index dont le start est > t (spans triés par start).
 function firstStartAfter(spans: Span[], t: number): number {
   let lo = 0;

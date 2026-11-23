@@ -2,10 +2,11 @@ import { memo, useMemo } from "react";
 import { scaleLinear } from "d3-scale";
 import type { Session } from "../../shared/types";
 import { CATEGORY_COLORS, spanCategory } from "./colors";
-import { panView, type View } from "./layout";
+import { groupMinimapSpans, panView, type View } from "./layout";
 import { trackDrag } from "./useZoomPan";
 
 export const MINIMAP_H = 44;
+const ERROR_COLOR = "#ff5c5c";
 
 interface Props {
   session: Session;
@@ -16,7 +17,7 @@ interface Props {
   onViewChange: (view: View) => void;
 }
 
-// Fond de la minimap : toute la session, une bande par lane. Mémoïsé car 5000 rects
+// Fond de la minimap : toute la session, une bande par lane. Mémoïsé car les blocs
 // ne doivent pas être recréés quand seul le rectangle de fenêtre bouge.
 const MinimapSpans = memo(function MinimapSpans(p: {
   session: Session;
@@ -25,23 +26,29 @@ const MinimapSpans = memo(function MinimapSpans(p: {
 }) {
   const { session, laneOrder, width } = p;
   const rects = useMemo(() => {
-    const x = scaleLinear().domain([session.start, Math.max(session.end, session.start + 1)]).range([0, width]);
     const bandH = (MINIMAP_H - 4) / Math.max(1, laneOrder.length);
     const bandOf = new Map(laneOrder.map((id, i) => [id, i]));
-    return session.spans.map((s) => {
-      const left = x(s.start);
-      return (
-        <rect
-          key={s.id}
-          x={left}
-          y={2 + (bandOf.get(s.laneId) ?? 0) * bandH}
-          width={Math.max(1, x(s.end) - left)}
-          height={Math.max(1.5, bandH - 1)}
-          fill={s.status === "error" ? "#ff5c5c" : CATEGORY_COLORS[spanCategory(s)]}
-          opacity={0.8}
-        />
-      );
-    });
+    const blocks = groupMinimapSpans(
+      session.spans,
+      bandOf,
+      Math.max(1, laneOrder.length),
+      session.start,
+      Math.max(session.end, session.start + 1),
+      width,
+      (s) => CATEGORY_COLORS[spanCategory(s)],
+      ERROR_COLOR,
+    );
+    return blocks.map((b) => (
+      <rect
+        key={`${b.band}:${b.x0}`}
+        x={b.x0}
+        y={2 + b.band * bandH}
+        width={b.x1 - b.x0}
+        height={Math.max(1.5, bandH - 1)}
+        fill={b.color}
+        opacity={0.8}
+      />
+    ));
   }, [session, laneOrder, width]);
   return <g>{rects}</g>;
 });

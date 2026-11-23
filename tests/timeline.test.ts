@@ -9,6 +9,7 @@ import {
   thinkingTitle,
   timeTicks,
   visibleLaneRows,
+  groupMinimapSpans,
   visibleSpans,
   zoomView,
 } from "../src/client/timeline/layout";
@@ -155,5 +156,29 @@ describe("devMock", () => {
     }
     expect(mockSession.spans.length).toBeGreaterThanOrEqual(290);
     expect(generateBigMockSession(5000).spans.length).toBeGreaterThanOrEqual(5000);
+  });
+});
+
+describe("groupMinimapSpans", () => {
+  const bandOf = new Map([["main", 0]]);
+  const group = (spans: Span[], width = 100) =>
+    groupMinimapSpans(spans, bandOf, 1, 0, 1000, width, () => "bleu", "rouge");
+  it("fusionne des milliers de spans plus petits qu'un pixel en peu de blocs", () => {
+    const tiny = Array.from({ length: 5000 }, (_, i) => span(`s${i}`, i * 0.2, i * 0.2 + 0.1));
+    const blocks = group(tiny);
+    expect(blocks).toHaveLength(1); // colonnes contiguës de même couleur
+    expect(blocks[0]).toMatchObject({ x0: 0, x1: 100 });
+  });
+  it("laisse un trou entre deux zones séparées", () => {
+    const blocks = group([span("a", 0, 50), span("b", 800, 850)]);
+    expect(blocks).toHaveLength(2);
+  });
+  it("une erreur colore sa colonne même au milieu d'autres spans", () => {
+    const blocks = group([span("a", 0, 100), span("e", 40, 41, { status: "error" })]);
+    expect(blocks.some((b) => b.color === "rouge")).toBe(true);
+  });
+  it("accepte une session vide et une durée nulle", () => {
+    expect(group([])).toEqual([]);
+    expect(groupMinimapSpans([span("a", 5, 5)], bandOf, 1, 5, 5, 100, () => "bleu", "rouge")).toHaveLength(1);
   });
 });
